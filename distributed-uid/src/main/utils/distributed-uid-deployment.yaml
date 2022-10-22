@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: distributed-uid-config
+data:
+  application.yml: |
+    database:
+      url: "jdbc:postgresql://192.168.0.105:26257/distributed_uid"
+      username: "root"
+      password: "root"
+      driver: "org.postgresql.Driver"
+      modelPackage: "com.uid.model"
+    server:
+      port: 9005
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: distributed-uid-depl
+spec:
+  selector:
+    matchLabels:
+      app: distributed-uid-depl
+  replicas: 5
+  template:
+    metadata:
+      labels:
+        app: distributed-uid-depl
+    spec:
+      containers:
+        - name: distributed-uid-pod
+          image: ameya1/distributed-uid:latest
+          ports:
+            - containerPort: 9005
+          volumeMounts:
+            - name: distributed-uid-vol
+              mountPath: /config
+      volumes:
+        - name: distributed-uid-vol
+          configMap:
+            name: distributed-uid-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: distributed-uid-svc
+spec:
+  selector:
+    app: distributed-uid-depl
+  ports:
+    - protocol: "TCP"
+      port: 80
+      targetPort: 9005
+  type: LoadBalancer
+
+
+
