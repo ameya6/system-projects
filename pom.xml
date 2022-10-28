@@ -11,6 +11,7 @@
     <modules>
         <module>data-access</module>
         <module>distributed-uid</module>
+        <module>url-shortner</module>
     </modules>
 
     <properties>

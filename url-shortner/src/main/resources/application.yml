@@ -1,0 +1,13 @@
+server:
+  port: 9006
+http:
+  server:
+    uid: http://localhost:9005/uid/
+domain:
+  url: http://srt.y/
+database:
+  url: "jdbc:postgresql://192.168.0.105:26257/url_shortner"
+  username: "root"
+  password: "root"
+  driver: "org.postgresql.Driver"
+  modelPackage: "com.shrt.model"
