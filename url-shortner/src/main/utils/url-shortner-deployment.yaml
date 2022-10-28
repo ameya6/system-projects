@@ -1,0 +1,56 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: url-shortner-config
+data:
+  application.yml: |
+    server:
+      port: 9006
+    http:
+      server:
+        uid: http://localhost:9005/uid/
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: url-shortner-depl
+spec:
+  selector:
+    matchLabels:
+      app: url-shortner-depl
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: url-shortner-depl
+    spec:
+      containers:
+        - name: url-shortner-pod
+          image: ameya1/url-shortner:latest
+          ports:
+            - containerPort: 9006
+          volumeMounts:
+            - name: url-shortner-vol
+              mountPath: /config
+      volumes:
+        - name: url-shortner-vol
+          configMap:
+            name: url-shortner-config
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: url-shortner-svc
+spec:
+  selector:
+    app: url-shortner-depl
+  ports:
+    - protocol: "TCP"
+      port: 80
+      targetPort: 9006
+  type: LoadBalancer
+
