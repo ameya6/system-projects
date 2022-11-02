@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Setter
 @Getter
@@ -22,6 +22,9 @@ public class ShortURL {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "short_url_id", unique = true)
+    private UUID shortURLID;
+
     @Column(name = "distributed_uid", nullable = false)
     private Long distributedUID;
 
@@ -33,6 +36,9 @@ public class ShortURL {
 
     @Column(name = "short_url", nullable = false)
     private String shortURL;
+
+    @Column(name = "url_hash", nullable = false)
+    private String urlHash;
 
     @JsonIgnore
     @Column(name = "created_at", nullable = false, insertable = false)

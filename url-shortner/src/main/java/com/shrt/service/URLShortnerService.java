@@ -1,6 +1,7 @@
 package com.shrt.service;
 
 import com.google.gson.Gson;
+import com.shrt.dao.ShortURLDAO;
 import com.shrt.dao.UserDao;
 import com.shrt.model.DistributedUID;
 import com.shrt.model.ShortURL;
@@ -8,6 +9,7 @@ import com.shrt.model.User;
 import com.shrt.model.request.ShortURLRequest;
 import com.shrt.model.response.ShortURLResponse;
 import lombok.extern.log4j.Log4j2;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,10 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Log4j2
 @Service
@@ -39,12 +41,20 @@ public class URLShortnerService {
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private ShortURLDAO shortURLDAO;
+
+    @Autowired
+    private SaveService saveService;
+
     private final String map = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-    public ShortURLResponse shortURL(ShortURLRequest shortURLRequest) throws URISyntaxException, IOException, InterruptedException {
-        log.info("Short url request : " + shortURLRequest);
+    public ShortURLResponse                               shortURL(ShortURLRequest shortURLRequest) throws URISyntaxException, IOException, InterruptedException {
+        //log.info("Short url request : " + shortURLRequest);
         ShortURL shortURL = createShortURL(shortURLRequest);
-        log.info("Short url  : " + shortURL);
+        //log.info("Short url  : " + shortURL);
+        //shortURLDAO.save(shortURL);
+        saveService.redisSave(shortURL);
         return ShortURLResponse
                 .builder()
                 .longUrl(shortURLRequest.getLongURL())
@@ -58,7 +68,7 @@ public class URLShortnerService {
         String shortCode = base62(uid);
         String shortUrl = domainURL + shortCode;
         LocalDateTime expireAt = shortURLRequest.getExpireAt() == null ? LocalDateTime.now().plusYears(10) : shortURLRequest.getExpireAt();
-
+        String urlHash = DigestUtils.sha256Hex(shortURLRequest.getLongURL());
         /**
          *  ! Design options
          * * User can be fetched reactively
@@ -69,6 +79,9 @@ public class URLShortnerService {
 
         return ShortURL.builder()
                 .longURL(shortURLRequest.getLongURL())
+                .shortURLID(UUID.randomUUID())
+                .distributedUID(uid)
+                .urlHash(urlHash)
                 .expireAt(expireAt)
                 .user(user)
                 .shortCode(shortCode)
