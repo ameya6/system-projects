@@ -1,10 +1,11 @@
 create database url_shortner;
 
-create table users(
+create table short_url(
 	id BIGSERIAL primary key not null,
-	user_id UUID not null unique DEFAULT gen_random_uuid(),
-	first_name text,
-	last_name text,
-	username text unique not null,
-	created_at timestamptz not null default now()
+	distributed_uid bigint unique not null,
+	long_url text not null,
+	short_code text unique not null,
+	short_url text unique not null,
+	created_at timestamptz not null default now(),
+	expire_at timestamptz not null
 );
